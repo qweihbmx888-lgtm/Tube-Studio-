@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -70,6 +71,19 @@ private data class TopVideoItem(
     val views: String,
     val duration: String,
     val badge: String
+)
+
+private data class AuditMetric(
+    val label: String,
+    val score: Int,
+    val color: Color
+)
+
+private data class CompetitorBench(
+    val title: String,
+    val views: String,
+    val retention: String,
+    val takeaway: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -139,13 +153,459 @@ fun TubePilotProApp() {
                     },
                     label = { Text("Revenue Lab") }
                 )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (selectedTab == 2) Color(0xFFF59E0B)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                        )
+                    },
+                    label = { Text("AI Audit") }
+                )
             }
         }
     ) { innerPadding ->
-        if (selectedTab == 0) {
-            AnalyticsDashboardScreen(modifier = Modifier.padding(innerPadding))
-        } else {
-            RevenueLabScreen(modifier = Modifier.padding(innerPadding))
+        when (selectedTab) {
+            0 -> AnalyticsDashboardScreen(modifier = Modifier.padding(innerPadding))
+            1 -> RevenueLabScreen(modifier = Modifier.padding(innerPadding))
+            else -> AiVideoAuditScreen(modifier = Modifier.padding(innerPadding))
+        }
+    }
+}
+
+@Composable
+private fun AiVideoAuditScreen(modifier: Modifier = Modifier) {
+    var topicInput by remember { mutableStateOf("Creator Growth & Reach Secrets") }
+    var isShortsAudit by remember { mutableStateOf(true) }
+    var auditRunCount by remember { mutableIntStateOf(1) }
+
+    val cleanTopic = topicInput.trim().ifEmpty { "Creator Growth & Reach Secrets" }
+    val baseSuccess = if (isShortsAudit) 74 else 81
+    val dynamicBoost = ((auditRunCount - 1) * 4) % 12
+    val successRate = (baseSuccess + dynamicBoost).coerceIn(55, 96)
+    val hookScore = (82 + dynamicBoost).coerceIn(60, 98)
+    val visualAudioScore = (88 + (dynamicBoost / 2)).coerceIn(65, 98)
+    val valueScore = (79 + dynamicBoost).coerceIn(60, 96)
+    val retentionScore = (if (isShortsAudit) 73 else 77) + dynamicBoost
+
+    val isReadyToPublish = successRate >= 72
+    val readinessLabel = if (isReadyToPublish) {
+        "READY TO PUBLISH • Strong Reach Potential"
+    } else {
+        "NEEDS POLISH • Tighten Hook & Contrast First"
+    }
+
+    val metrics = listOf(
+        AuditMetric("First 5s Hook & Attention", hookScore, Color(0xFF10B981)),
+        AuditMetric("Visual & Audio Clarity", visualAudioScore, Color(0xFF38BDF8)),
+        AuditMetric("Topic Value & Relevance", valueScore, Color(0xFF8B5CF6)),
+        AuditMetric("Audience Retention Forecast", retentionScore.coerceIn(55, 96), Color(0xFFF59E0B))
+    )
+
+    val suggestedTitles = if (isShortsAudit) {
+        listOf(
+            "Watch Till End: $cleanTopic in 45s",
+            "Stop Doing This in $cleanTopic!",
+            "3 Fast Rules for $cleanTopic That Work"
+        )
+    } else {
+        listOf(
+            "$cleanTopic: Full Breakdown & Real Results",
+            "Why Most Creators Fail at $cleanTopic (And How to Fix It)",
+            "Complete $cleanTopic Playbook for Higher Views"
+        )
+    }
+
+    val thumbnailIdeas = listOf(
+        "Split frame: Before (dim/flat) vs. After (bright contrast + bold 2-word tag)",
+        "Close-up expressive reaction + clear arrow pointing to key number/metric",
+        "Dark clean background + high-contrast highlight box + minimal text"
+    )
+
+    val competitors = listOf(
+        CompetitorBench(
+            title = "Top Niche Benchmark #1",
+            views = "240K views",
+            retention = "76% avg view",
+            takeaway = "Opens with a bold result in the first 2 seconds and cuts dead air."
+        ),
+        CompetitorBench(
+            title = "Top Niche Benchmark #2",
+            views = "118K views",
+            retention = "68% avg view",
+            takeaway = "Uses punchy on-screen captions and clear pacing shifts every 8–10s."
+        )
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "AI Video Audit",
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Readiness check, titles, thumbnails & before/after diff",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xFF281D45))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "AI SCAN #$auditRunCount",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFC4B5FD)
+                )
+            }
+        }
+
+        // Input & Scan Controls
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = isShortsAudit,
+                        onClick = { isShortsAudit = true },
+                        label = { Text("Shorts Format") }
+                    )
+                    FilterChip(
+                        selected = !isShortsAudit,
+                        onClick = { isShortsAudit = false },
+                        label = { Text("Long-Form") }
+                    )
+                }
+
+                OutlinedTextField(
+                    value = topicInput,
+                    onValueChange = { topicInput = it },
+                    label = { Text("Video Topic or Working Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Button(
+                    onClick = { auditRunCount += 1 },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Run AI Video Inspection")
+                }
+            }
+        }
+
+        // Readiness & Success Score Card
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = if (isReadyToPublish) Color(0xFF102A22) else Color(0xFF2C1D11)
+            ),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = readinessLabel,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isReadyToPublish) Color(0xFF34D399) else Color(0xFFFBBF24)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column {
+                        Text(
+                            text = "Success Probability",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "$successRate%",
+                            fontSize = 34.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Intro Rating",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "$hookScore / 100",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF38BDF8)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Detailed Breakdown Bars
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Diagnostic Breakdown",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+                metrics.forEach { metric ->
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = metric.label,
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "${metric.score}/100",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = metric.color
+                            )
+                        }
+                        LinearProgressIndicator(
+                            progress = { metric.score / 100f },
+                            color = metric.color,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                        )
+                    }
+                }
+            }
+        }
+
+        // Before vs After Optimization + Exact Changes Explained
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Before vs. After Optimization",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // BEFORE box
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF23161B))
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "BEFORE (Raw Draft)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF87171)
+                        )
+                        Text(
+                            text = "Slow intro, flat lighting & contrast, generic title, no strong CTA.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // AFTER box
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF122820))
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "AFTER (AI Enhanced)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF34D399)
+                        )
+                        Text(
+                            text = "Instant hook, punchy color/contrast, high-CTR title & clear next step.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                HorizontalDivider()
+
+                Text(
+                    text = "What Changed & Why:",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFFC4B5FD)
+                )
+                Text(
+                    text = "• Opening Hook: Moved the core payoff to 0:00–0:04 to cut early drop-off.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "• Visual Polish: Boosted contrast, clarity, and focal framing for mobile feeds.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "• Packaging & CTA: Paired a curiosity-driven title with a clear end prompt.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Suggested Titles & Thumbnails
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Title & Thumbnail Suggestions",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+                suggestedTitles.forEachIndexed { idx, title ->
+                    Text(
+                        text = "${idx + 1}. $title",
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                }
+                HorizontalDivider()
+                Text(
+                    text = "Thumbnail Concepts:",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF38BDF8)
+                )
+                thumbnailIdeas.forEach { idea ->
+                    Text(
+                        text = "• $idea",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        // Competitor Comparison
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Competitor Benchmark Comparison",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+                competitors.forEach { comp ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = comp.title,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "${comp.views} • ${comp.retention}",
+                                fontSize = 11.sp,
+                                color = Color(0xFF34D399)
+                            )
+                        }
+                        Text(
+                            text = comp.takeaway,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
         }
     }
 }
